@@ -145,6 +145,46 @@ Change the host port in `ports:` if `8090` is taken.
 
 ---
 
+## Preparing the iBOM
+
+scan2place reads a standard iBOM from
+[InteractiveHtmlBom](https://github.com/openscopeproject/InteractiveHtmlBom) — it never
+modifies your `ibom.html`, it only needs a few columns to be present.
+
+**Required — the LCSC part number.** The only hard requirement. It is found either way:
+
+- **By column name** — any custom field whose name contains **`LCSC`**
+  (case-insensitive): `LCSC Part #`, `LCSC Part Number` or plain `LCSC` all work — the
+  `#` is irrelevant.
+- **By value pattern** — otherwise scan2place auto-detects the column whose values look
+  like LCSC codes (`C` followed by 3 or more digits, e.g. `C2906290`), so a
+  differently-named column still works.
+
+Add the field to your parts in KiCad and make sure InteractiveHtmlBom includes it
+(`--extra-fields "LCSC Part #"`, or the plugin's *Extra fields* box). Without it, upload
+still works but nothing can be matched (the sidebar shows a ⚠).
+
+**For progress & the pipeline — the `Sourced` / `Placed` checkboxes.** These are
+InteractiveHtmlBom's defaults (`--checkboxes "Sourced,Placed"`); keep them so the
+progress bar and the sourcing → placing flow work.
+
+**For alternative matching (resistors, capacitors, inductors) — `Value` + `Footprint`.**
+To offer an equivalent BOM part for a scanned-but-unlisted LCSC number, scan2place reads:
+
+- a **`Value`** column with a parseable value — `470nF`, `4.7k`, `10uH`, RKM notation
+  like `4k7`, `100kΩ` … (KiCad's standard *Value* field);
+- a **`Footprint`** or **`Package`** column — the part type comes from the leading letter
+  (`C`0402 → capacitor, `R` → resistor, `L` → inductor) and the size (`0402`, `0603`, …)
+  is used as a preferred-match bonus.
+
+Exact scans — the everyday case — only need the LCSC field. Alternative matching is
+limited to R/L/C; ICs, connectors, etc. are matched by LCSC number only.
+
+**Optional — `Mfr. Part #` / `MPN`.** Any field containing `mfr`, `manufacturer` or
+`mpn` is shown for reference only.
+
+---
+
 ## How you use it
 
 1. **On the PC**, open `https://<PC-IP>:8090`, **upload** your `ibom.html` from the
