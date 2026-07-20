@@ -4,6 +4,7 @@ WebSocket-Bruecke zwischen Smartphone-Scanner und PC-Viewer.
 from __future__ import annotations
 
 import os
+import re
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -89,11 +90,29 @@ def _maybe_advance_phase(ibom_id: str) -> None:
 # Seiten (Single-Page-App)
 # ---------------------------------------------------------------------------
 
+# Matches local static asset URLs (js/css) so we can append a cache-busting token.
+_STATIC_REF_RE = re.compile(r"(/static/[^\"'?\s]+\.(?:js|css))")
+
+
+def _cache_bust(html: str) -> str:
+    """Append ?v=<mtime> to local /static js/css refs so browsers fetch the
+    current version after every rebuild instead of a stale cached copy."""
+    def repl(m: "re.Match[str]") -> str:
+        ref = m.group(1)
+        path = STATIC_DIR / ref[len("/static/"):]
+        try:
+            return f"{ref}?v={int(path.stat().st_mtime)}"
+        except OSError:
+            return ref
+    return _STATIC_REF_RE.sub(repl, html)
+
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/scan", response_class=HTMLResponse)
 @app.get("/viewer", response_class=HTMLResponse)
-def index() -> FileResponse:
-    return FileResponse(TEMPLATES_DIR / "index.html")
+def index() -> HTMLResponse:
+    html = (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
+    return HTMLResponse(_cache_bust(html))
 
 
 # ---------------------------------------------------------------------------

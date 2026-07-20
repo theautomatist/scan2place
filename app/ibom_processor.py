@@ -13,12 +13,22 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 
 import lzstring
 
 from . import values
 
 _LZ = lzstring.LZString()
+_INJECT_JS = Path(__file__).resolve().parent.parent / "static" / "inject.js"
+
+
+def _inject_version() -> int:
+    """mtime of inject.js as a cache-busting token (falls back to 1)."""
+    try:
+        return int(_INJECT_JS.stat().st_mtime)
+    except OSError:
+        return 1
 
 # LCSC-artiger Wert: 'C' + mindestens 3 Ziffern.
 _LCSC_VALUE_RE = re.compile(r"^C\d{3,}$", re.IGNORECASE)
@@ -298,7 +308,7 @@ def inject_helper(html: str, ibom_id: str, state: dict, settings: dict,
         "\n<script>window.__LCSC_HELPER__ = "
         + json.dumps(payload)
         + ";</script>\n"
-        + '<script src="/static/inject.js?v=1"></script>\n'
+        + f'<script src="/static/inject.js?v={_inject_version()}"></script>\n'
     )
     idx = html.rfind("</body>")
     if idx == -1:
