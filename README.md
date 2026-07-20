@@ -45,6 +45,24 @@ generates the interactive BOM this tool drives.
 
 ---
 
+## What it looks like
+
+**On the PC — the Viewer.** ① Open or upload an iBOM · ② show the pairing QR for your
+phone · ③ the scanned part is preselected, highlighted on the board and ticked off —
+with live `Sourced / Placed` progress across the top:
+
+![scan2place Viewer on the PC](docs/pc.png)
+
+**On the phone — the Scanner.** Point the camera at the LCSC sticker; the match is
+confirmed instantly (`✓ C39831287 → U1`), with live progress and a running history of
+recent scans:
+
+<p align="center">
+  <img src="docs/smartphone.jpg" alt="scan2place Scanner on the phone" width="330">
+</p>
+
+---
+
 ## Workflow
 
 One motion per part: scan the bag, watch it light up on the board. That's the whole loop.
