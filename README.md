@@ -47,18 +47,16 @@ generates the interactive BOM this tool drives.
 
 ## What it looks like
 
-**On the PC — the Viewer.** ① Open or upload an iBOM · ② show the pairing QR for your
-phone · ③ the scanned part is preselected, highlighted on the board and ticked off —
-with live `Sourced / Placed` progress across the top:
+<p align="center">
+  <img src="docs/pc.png" alt="scan2place Viewer on the PC" width="880"><br>
+  <sub><b>PC — the Viewer.</b> ① open or upload an iBOM &nbsp;·&nbsp; ② show the pairing QR for the phone &nbsp;·&nbsp; ③ the scanned part <code>U1</code> is preselected, highlighted on the board and ticked off — with live <code>Sourced&nbsp;10/31 · Placed&nbsp;0/31</code> progress along the top.</sub>
+</p>
 
-![scan2place Viewer on the PC](docs/pc.png)
-
-**On the phone — the Scanner.** Point the camera at the LCSC sticker; the match is
-confirmed instantly (`✓ C39831287 → U1`), with live progress and a running history of
-recent scans:
+<br>
 
 <p align="center">
-  <img src="docs/smartphone.jpg" alt="scan2place Scanner on the phone" width="330">
+  <img src="docs/smartphone.jpg" alt="scan2place Scanner on the phone" width="300"><br>
+  <sub><b>Phone — the Scanner.</b> point the camera at an LCSC sticker; the match is confirmed instantly (<code>✓ C39831287 → U1</code>), with live progress and a running history of recent scans.</sub>
 </p>
 
 ---
