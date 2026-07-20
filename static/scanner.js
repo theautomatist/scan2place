@@ -154,6 +154,7 @@ window.BomScanner = (function () {
     try {
       await startCamera();
       status("connected", ws && ws.readyState === 1);
+      if (cb.onCameraReady) cb.onCameraReady();   // camera is live -> clear "Starting camera…"
     } catch (err) {
       running = true; // WS stays, camera does not
       var msg = "Camera could not be started.";

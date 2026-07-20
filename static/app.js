@@ -189,6 +189,11 @@
       },
       onSettings: function (s) { if (s) { state.settings = s; updateScannerPhase(); } },
       onProgress: function (pr) { onProgress(pr); },
+      onCameraReady: function () {
+        if (el.scanResult.classList.contains("idle")) {
+          el.scanResult.textContent = "Point the camera at a part's QR code";
+        }
+      },
       onScanning: function (raw) { showScanning(raw); },
       onResult: function (msg) { showScanResult(msg); },
       onError: function (m) {
