@@ -5,13 +5,39 @@ component lights up in your interactive BOM on the PC and gets checked off. Inst
 
 No searching. No comparing part numbers by hand. Just scan, source, place — done.
 
+---
+
+## Why this exists
+
+I design my boards in KiCad and use my own LCSC parts importer to pull the component
+symbols and footprints straight into the schematic — that part is fast.
+
+The slow part comes later. When the first prototype arrives — the one you still
+hand-assemble, whether for the fun of it or simply because it's the economical choice
+for a single board — it turns up as a box full of little plastic bags, each with a
+sticker carrying an LCSC part number. Matching every bag to its position on the board
+by hand, while keeping track of what you already have and what is still missing, is
+tedious and easy to get wrong.
+
+**scan2place** turns that into a single motion. Point your phone at the sticker on a
+bag and the matching component lights up in the interactive BOM on your PC and gets
+checked off — so at any moment you see at a glance what is sourced, what is placed, and
+what is still missing. Fast, and hard to get wrong.
+
+It builds on KiCad's excellent
+[InteractiveHtmlBom](https://github.com/openscopeproject/InteractiveHtmlBom), which
+generates the interactive BOM this tool drives.
+
+---
+
+## What it does
+
 * **PC (Viewer):** shows the real KiCad *InteractiveHtmlBom*. Scanned parts are
   highlighted, scrolled into view and ticked off.
 * **Phone (Scanner):** scans the QR/DataMatrix labels on the part packaging and sends
   them live to the Viewer over your LAN.
-* Works with **any** iBOM from
-  [openscopeproject/InteractiveHtmlBom](https://github.com/openscopeproject/InteractiveHtmlBom) —
-  the LCSC part field is detected automatically (by name *or* value pattern).
+* Works with **any** iBOM from InteractiveHtmlBom — the LCSC part field is detected
+  automatically (by name *or* value pattern).
 * Multiple iBOMs, progress **stored on the server** per BOM — pick up where you left off.
 
 > 📖 A longer, illustrated write-up with additional data-flow diagrams lives in
