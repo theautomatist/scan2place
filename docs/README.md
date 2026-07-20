@@ -199,9 +199,9 @@ advances it automatically once every position is sourced.
 stateDiagram-v2
     direction LR
     [*] --> Sourcing
-    Sourcing --> Sourcing: scan → mark <b>Sourced</b>
+    Sourcing --> Sourcing: scan marks Sourced
     Sourcing --> Placing: all positions sourced (automatic)
-    Placing --> Placing: scan → confirm “all N placed?” → mark <b>Placed</b>
+    Placing --> Placing: scan, confirm, mark Placed
     Placing --> Sourcing: manual switch
     Sourcing --> Placing: manual switch
 ```

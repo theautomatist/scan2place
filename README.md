@@ -14,8 +14,38 @@ No searching. No comparing part numbers by hand. Just scan, source, place — do
   the LCSC part field is detected automatically (by name *or* value pattern).
 * Multiple iBOMs, progress **stored on the server** per BOM — pick up where you left off.
 
-> 📖 A longer, illustrated write-up with architecture and data-flow diagrams lives in
+> 📖 A longer, illustrated write-up with additional data-flow diagrams lives in
 > [`docs/README.md`](docs/README.md).
+
+---
+
+## Workflow
+
+One motion per part: scan the bag, watch it light up on the board. That's the whole loop.
+
+```mermaid
+flowchart LR
+    A["🔧 Generate iBOM<br/>in KiCad"] --> B["🐳 docker compose up"]
+    B --> C["⬆️ Upload the iBOM<br/>in the browser"]
+    C --> D["🖥️ Open the Viewer<br/>on the PC"]
+    D --> E["📱 Pair the Scanner<br/>(scan the on-screen QR)"]
+    E --> F["🔍 Scan the part<br/>packaging with the phone"]
+    F --> G["✅ Highlighted &amp;<br/>checked off in the BOM"]
+    G -->|next part| F
+```
+
+The sourcing → placing pipeline drives the two phases and advances automatically:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Sourcing
+    Sourcing --> Sourcing: scan marks Sourced
+    Sourcing --> Placing: all positions sourced (automatic)
+    Placing --> Placing: scan, confirm, mark Placed
+    Placing --> Sourcing: manual switch
+    Sourcing --> Placing: manual switch
+```
 
 ---
 
@@ -179,6 +209,55 @@ Pick the browser channel with `--channel msedge|chrome|chromium` (default `msedg
 ---
 
 ## How it works
+
+A single FastAPI server serves the (unmodified) iBOM inside an `<iframe>` and injects a
+small sync script into it. A WebSocket "room" per iBOM connects the phone (scanner) and
+the PC (viewer).
+
+```mermaid
+flowchart TB
+    KICAD["🔧 KiCad + InteractiveHtmlBom"] -. "generates ibom.html" .-> UP
+
+    subgraph Phone["📱 Smartphone — Scanner"]
+        SC["scanner.js<br/>camera + QR decode"]
+    end
+
+    subgraph PC["🖥️ PC — Viewer"]
+        APP["app.js<br/>SPA shell / UI"]
+        IF["iBOM in iframe<br/>+ injected inject.js"]
+    end
+
+    subgraph Server["🐳 FastAPI server (Docker)"]
+        MAIN["main.py<br/>REST · WebSocket · serving"]
+        PROC["ibom_processor.py<br/>parse · index · match · progress"]
+        LAPI["lcsc_api.py<br/>online part lookup + cache"]
+        STORE["storage.py<br/>file persistence"]
+        WSM["ws_manager.py<br/>viewer/scanner rooms"]
+        DUAL["dualstack.py<br/>http→https on one port"]
+    end
+
+    subgraph Vol["💾 data/ (Docker volume)"]
+        IBOMS[("iBOMs + state<br/>+ alternatives")]
+        CACHE[("LCSC part cache")]
+        CERT[("TLS certificate")]
+    end
+
+    EXT["🌐 LCSC ftps API"]
+
+    UP["upload"] --> STORE
+    SC <-->|"WebSocket (wss)"| MAIN
+    APP <-->|"REST + postMessage"| MAIN
+    IF <-->|"WebSocket (wss)"| MAIN
+    MAIN --> PROC
+    MAIN --> STORE
+    MAIN --> WSM
+    MAIN --- DUAL
+    PROC --> LAPI
+    LAPI -->|HTTPS| EXT
+    LAPI --> CACHE
+    STORE --> IBOMS
+    STORE --> CERT
+```
 
 * The server reads the iBOM (`pcbdata` is LZString-compressed), detects the LCSC field
   and builds an index **LCSC number → references / footprints**.
