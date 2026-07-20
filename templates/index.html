@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>scan2place</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside id="sidebar">
+    <div class="sidebar-head">
+      <span class="logo">📦 scan2place</span>
+      <button id="sidebar-close" class="icon-btn only-mobile" title="Close menu">✕</button>
+    </div>
+
+    <label class="upload-btn">
+      <input type="file" id="file-input" accept=".html,text/html" hidden>
+      <span>＋ Upload iBOM</span>
+    </label>
+    <div id="upload-status" class="upload-status"></div>
+
+    <div class="nav-title">My iBOMs</div>
+    <ul id="ibom-list" class="ibom-list"><li class="empty">Loading…</li></ul>
+
+    <div class="sidebar-foot">
+      <button id="open-settings" class="settings-btn">⚙ Settings</button>
+    </div>
+  </aside>
+  <div id="sidebar-backdrop" class="only-mobile"></div>
+
+  <!-- ===================== MAIN ===================== -->
+  <main id="main">
+    <header id="topbar">
+      <button id="menu-toggle" class="icon-btn only-mobile" title="Menu">☰</button>
+      <div class="topbar-title" id="topbar-title">scan2place</div>
+      <div class="topbar-right">
+        <span id="presence" class="presence" title="Connected devices"></span>
+        <div class="role-switch" id="role-switch" hidden>
+          <button data-role="viewer" class="active">🖥 Viewer</button>
+          <button data-role="scanner">📷 Scanner</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ---- HOME ---- -->
+    <section id="view-home" class="view">
+      <div class="home-card">
+        <div class="home-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect width="5" height="5" x="3" y="3" rx="1"/>
+            <rect width="5" height="5" x="16" y="3" rx="1"/>
+            <rect width="5" height="5" x="3" y="16" rx="1"/>
+            <path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/>
+            <path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/>
+            <path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/>
+            <path d="M21 12v.01"/><path d="M12 21v-1"/>
+          </svg>
+        </div>
+        <h1>scan2place</h1>
+        <p>Scan the LCSC/JLCPCB packaging QR codes with your <strong>phone</strong> and
+           instantly check off the matching component in your KiCad iBOM on the
+           <strong>PC</strong> — no searching, no comparing.</p>
+        <ol class="steps">
+          <li><strong>Upload</strong> an iBOM with the button in the sidebar, or pick one from the list.</li>
+          <li>Open it on the <strong>PC</strong> — it opens as the <em>Viewer</em>.</li>
+          <li>Click <strong>Connect&nbsp;scanner</strong><svg class="inline-qr" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true"><rect width="5" height="5" x="3" y="3" rx="1"/><rect
+                 width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path
+                 d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path
+                 d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path
+                 d="M21 12v.01"/><path d="M12 21v-1"/></svg> (top right) and scan the QR code it shows with your phone.</li>
+          <li>Scan a part's packaging → it lights up and gets ticked off in the BOM.</li>
+        </ol>
+        <p class="hint" id="home-hint"></p>
+      </div>
+    </section>
+
+    <!-- ---- VIEWER ---- -->
+    <section id="view-viewer" class="view" hidden>
+      <div class="viewer-bar">
+        <div id="pipeline-bar" class="pipeline-bar" hidden>
+          <div class="phase-switch" id="phase-switch">
+            <button data-phase="sourcing">① Sourcing</button>
+            <button data-phase="placing">② Placing</button>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-track">
+              <div id="progress-sourced" class="progress-fill sourced"></div>
+              <div id="progress-placed" class="progress-fill placed"></div>
+            </div>
+            <span id="progress-label" class="progress-label"></span>
+          </div>
+        </div>
+        <button id="btn-pair" class="pair-btn" title="Connect scanner">
+          <svg class="qr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="5" height="5" x="3" y="3" rx="1"/>
+            <rect width="5" height="5" x="16" y="3" rx="1"/>
+            <rect width="5" height="5" x="3" y="16" rx="1"/>
+            <path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/>
+            <path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/>
+            <path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/>
+            <path d="M21 12v.01"/><path d="M12 21v-1"/>
+          </svg>
+          <span class="pair-text">Connect scanner</span>
+        </button>
+        <span id="scan-feedback" class="scan-feedback"></span>
+      </div>
+      <iframe id="ibom-frame" title="iBOM"></iframe>
+    </section>
+
+    <!-- ---- SCANNER ---- -->
+    <section id="view-scanner" class="view" hidden>
+      <div class="scanner-head">
+        <div>
+          <div class="scanner-target" id="scanner-target">—</div>
+          <div class="scanner-conn" id="scanner-conn">not connected</div>
+        </div>
+        <div class="scanner-head-right">
+          <span id="scanner-phase" class="scanner-phase" hidden></span>
+          <button id="scanner-switch-ibom" class="mini-btn">Switch iBOM</button>
+        </div>
+      </div>
+      <div class="scanner-stage">
+        <div id="qr-reader" class="qr-reader"></div>
+        <div id="scan-suggest" class="scan-suggest" hidden></div>
+      </div>
+      <div id="scan-result" class="scan-result idle">Starting camera…</div>
+      <div class="scan-log-wrap">
+        <div class="scan-log-title">Recently scanned</div>
+        <ul id="scan-log" class="scan-log"></ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ===================== PAIRING MODAL ===================== -->
+<div id="pair-modal" class="modal" hidden>
+  <div class="modal-box">
+    <button class="modal-close" data-close-modal>✕</button>
+    <h2>Connect scanner</h2>
+    <p>Scan the QR code with your phone's camera — or type the address below into the
+       phone's browser manually.</p>
+    <div class="pair-host">
+      <label for="pair-host">PC address (LAN IP:port)</label>
+      <input type="text" id="pair-host" placeholder="192.168.x.x:8090" autocomplete="off">
+    </div>
+    <div id="pair-warn" class="pair-warn" hidden></div>
+    <div id="pair-qr" class="pair-qr"></div>
+    <div class="pair-link">
+      <input type="text" id="pair-url" readonly>
+      <button id="copy-url" class="mini-btn">Copy</button>
+    </div>
+    <p class="hint small">The phone must be on the same Wi-Fi. On first open, accept the
+       certificate warning (self-signed HTTPS, required for camera access).</p>
+  </div>
+</div>
+
+<!-- ===================== SETTINGS MODAL ===================== -->
+<div id="settings-modal" class="modal" hidden>
+  <div class="modal-box">
+    <button class="modal-close" data-close-modal>✕</button>
+    <h2>⚙ Settings</h2>
+    <label class="setting">
+      <input type="checkbox" data-setting="scrollTo">
+      <span><strong>Scroll to component</strong><br>
+        <small>Viewer jumps to the scanned BOM row.</small></span>
+    </label>
+    <label class="setting">
+      <input type="checkbox" data-setting="highlightAlt">
+      <span><strong>Highlight alternatives</strong><br>
+        <small>Rows with an alternative part are tinted in the BOM.</small></span>
+    </label>
+    <label class="setting setting-color">
+      <input type="color" data-setting="altColor" value="#3b82f6">
+      <span><strong>Highlight color</strong><br>
+        <small>Background color of alternative rows.</small></span>
+    </label>
+    <label class="setting">
+      <input type="checkbox" data-setting="highlightPlaced">
+      <span><strong>Tint placed components green</strong><br>
+        <small>Rows checked as “Placed” get a very subtle green background.</small></span>
+    </label>
+    <label class="setting">
+      <input type="checkbox" data-setting="sound">
+      <span><strong>Sound on scan</strong> <small>(phone)</small></span>
+    </label>
+    <label class="setting">
+      <input type="checkbox" data-setting="vibrate">
+      <span><strong>Vibrate on scan</strong> <small>(phone)</small></span>
+    </label>
+    <div id="settings-saved" class="settings-saved"></div>
+  </div>
+</div>
+
+<script src="/static/vendor/qrcode-generator.js"></script>
+<script src="/static/vendor/html5-qrcode.min.js"></script>
+<script src="/static/scanner.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+data/
+.git/
+.github/
+.gitignore
+.dockerignore
+__pycache__/
+*.pyc
+.venv/
+venv/
+README.md
+docs/
+tests/

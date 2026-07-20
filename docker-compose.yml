@@ -1,0 +1,24 @@
+services:
+  scan2place:
+    # Pre-built image published to the GitHub Container Registry by CI.
+    # `docker compose up -d`          -> pulls and runs this image
+    # `docker compose up -d --build`  -> builds from local source instead
+    image: ghcr.io/theautomatist/scan2place:latest
+    build: .
+    container_name: scan2place
+    ports:
+      # host:container — change the left number to use a different host port
+      - "8090:8090"
+    volumes:
+      # Persistent data: uploaded iBOMs, checkbox state, LCSC cache, TLS certificate
+      - ./data:/app/data
+    environment:
+      # Port inside the container (must match the right-hand number in `ports`)
+      - PORT=8090
+      # USE_HTTPS=1: self-signed TLS inside the app (needed for the phone camera
+      #   on direct LAN access — browsers only grant camera access over HTTPS).
+      # USE_HTTPS=0: plain HTTP — e.g. when a reverse proxy (Traefik, Caddy,
+      #   nginx-proxy-manager …) terminates TLS. The proxy MUST serve https,
+      #   otherwise the phone gets no camera access.
+      - USE_HTTPS=1
+    restart: unless-stopped
