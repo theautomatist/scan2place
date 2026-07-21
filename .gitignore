@@ -9,6 +9,10 @@ __pycache__/
 venv/
 env/
 
+# PyInstaller build output (binaries are built by CI, not committed)
+/build/
+/dist/
+
 # IDE / OS
 .vscode/
 .idea/

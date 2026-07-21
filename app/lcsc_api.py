@@ -13,6 +13,7 @@ import urllib.request
 from pathlib import Path
 
 from . import values
+from .paths import DATA_DIR
 
 _DETAIL_URL = "https://wmsc.lcsc.com/ftps/wm/product/detail?productCode={}"
 _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -25,8 +26,8 @@ _HEADERS = {
 
 _ctx = ssl.create_default_context()
 
-# Cache-Verzeichnis (wird von storage gesetzt, hier ableitbar)
-_CACHE_DIR = Path(__file__).resolve().parent.parent / "data" / "lcsc_cache"
+# Cache-Verzeichnis liegt unter dem persistenten data/-Ordner
+_CACHE_DIR = DATA_DIR / "lcsc_cache"
 
 # Parameter-Feldname je Bauteiltyp
 _VALUE_PARAM = {

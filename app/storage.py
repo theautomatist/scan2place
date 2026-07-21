@@ -20,8 +20,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import ibom_processor
+from .paths import DATA_DIR
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 IBOMS_DIR = DATA_DIR / "iboms"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 CERTS_DIR = DATA_DIR / "certs"

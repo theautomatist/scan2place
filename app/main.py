@@ -15,12 +15,9 @@ from fastapi.staticfiles import StaticFiles
 import asyncio
 
 from . import ibom_processor, lcsc_api, storage
+from .paths import STATIC_DIR, TEMPLATES_DIR
 from .qr import parse_qr
 from .ws_manager import manager
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-STATIC_DIR = BASE_DIR / "static"
-TEMPLATES_DIR = BASE_DIR / "templates"
 
 
 @asynccontextmanager

@@ -143,6 +143,41 @@ Change the host port in `ports:` if `8090` is taken.
 
 ---
 
+## Run without Docker (standalone)
+
+Prefer not to run Docker? Grab a **single-file executable** from the
+[latest release](https://github.com/theautomatist/scan2place/releases/latest) — no
+Python, no dependencies, nothing to install:
+
+| Platform | File |
+|---|---|
+| Windows (x64) | `scan2place-windows-x86_64.exe` |
+| Linux (x64) | `scan2place-linux-x86_64` |
+| macOS (Apple Silicon) | `scan2place-macos-arm64` |
+| macOS (Intel) | `scan2place-macos-x86_64` |
+
+Then run it and open `https://<your-ip>:8090`:
+
+```bash
+# Windows — double-click the .exe, or from a terminal:
+scan2place-windows-x86_64.exe
+
+# Linux / macOS:
+chmod +x scan2place-linux-x86_64
+./scan2place-linux-x86_64
+```
+
+The app creates a **`data/` folder next to the executable** (uploaded iBOMs, progress,
+TLS certificate, LCSC cache), so keep the binary in a writable location. The same
+environment variables as Docker apply: `PORT` (default `8090`), `HOST`, `USE_HTTPS`
+(`1`/`0`), and `SCAN2PLACE_DATA` to put the data folder somewhere else.
+
+> **First-run security prompts** (the binaries are unsigned): on **Windows** SmartScreen
+> may warn — *More info → Run anyway*. On **macOS** Gatekeeper blocks it — right-click →
+> *Open*, or run `xattr -d com.apple.quarantine scan2place-macos-arm64` once.
+
+---
+
 ## Preparing the iBOM
 
 scan2place reads a standard iBOM from
@@ -365,13 +400,16 @@ app/
   ws_manager.py      WebSocket rooms (viewer / scanner)
   dualstack.py       single-port http→https multiplexer
   certs.py           self-signed TLS certificate
+  paths.py           resource / data path resolution (source vs. frozen exe)
 static/
   app.js  scanner.js  inject.js  style.css
   vendor/            html5-qrcode (scanner) · qrcode-generator (pairing QR)
 templates/index.html
+run.py                 standalone entry point (python run.py / PyInstaller)
+scan2place.spec        PyInstaller build spec (single-file executable)
 tests/               headless end-to-end smoke tests (Playwright, no extension needed)
 data/                (runtime) uploaded iBOMs, state, cache, certificate
-.github/workflows/   CI: build & publish the Docker image to ghcr.io
+.github/workflows/   CI: publish the Docker image (ghcr.io) + build release binaries
 ```
 
 ---
