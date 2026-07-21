@@ -154,7 +154,9 @@ Python, no dependencies, nothing to install:
 | Windows (x64) | `scan2place-windows-x86_64.exe` |
 | Linux (x64) | `scan2place-linux-x86_64` |
 | macOS (Apple Silicon) | `scan2place-macos-arm64` |
-| macOS (Intel) | `scan2place-macos-x86_64` |
+
+> **Intel Mac?** Run it via [Docker](#getting-started-self-hosting) or build the binary
+> from source: `pip install -r requirements.txt pyinstaller && pyinstaller scan2place.spec`.
 
 Then run it and open `https://<your-ip>:8090`:
 

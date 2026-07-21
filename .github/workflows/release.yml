@@ -24,12 +24,12 @@ jobs:
           - os: ubuntu-latest
             asset: scan2place-linux-x86_64
             bin: dist/scan2place
-          - os: macos-13          # Intel
-            asset: scan2place-macos-x86_64
-            bin: dist/scan2place
           - os: macos-latest      # Apple Silicon
             asset: scan2place-macos-arm64
             bin: dist/scan2place
+          # Intel macOS (macos-13) is intentionally omitted: GitHub's Intel
+          # runners are being retired and queue for a very long time. Intel-Mac
+          # users can run via Docker or build from source (pyinstaller scan2place.spec).
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
