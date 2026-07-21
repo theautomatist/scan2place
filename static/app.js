@@ -55,7 +55,7 @@
     var list = el.ibomList;
     list.innerHTML = "";
     if (!state.iboms.length) {
-      list.innerHTML = '<li class="empty">Noch keine iBOM. Lade oben eine hoch.</li>';
+      list.innerHTML = '<li class="empty">No iBOMs yet. Upload one above.</li>';
       return;
     }
     state.iboms.forEach(function (m) {
@@ -94,22 +94,70 @@
   }
 
   // ---- Upload ------------------------------------------------------------
+  var uploadHideTimer = null;
+
   function handleUpload(file) {
     if (!file) return;
-    el.uploadStatus.className = "upload-status";
-    el.uploadStatus.textContent = "Uploading…";
+    clearTimeout(uploadHideTimer);
+    renderUpload(file.name, 0, "Uploading…");
     var fd = new FormData();
     fd.append("file", file);
-    api("/api/iboms", { method: "POST", body: fd })
-      .then(function (meta) {
-        el.uploadStatus.className = "upload-status ok";
-        el.uploadStatus.textContent = "✓ " + meta.name + (meta.warning ? " (⚠ " + meta.warning + ")" : "");
-        return loadIboms().then(function () { selectIbom(meta.id); });
-      })
-      .catch(function (err) {
-        el.uploadStatus.className = "upload-status error";
-        el.uploadStatus.textContent = "✗ " + err.message;
-      });
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/iboms");
+    xhr.upload.onprogress = function (e) {
+      if (!e.lengthComputable) return;
+      var pct = Math.round(e.loaded / e.total * 100);
+      renderUpload(file.name, pct, pct < 100 ? "Uploading…" : "Processing…", pct >= 100);
+    };
+    xhr.upload.onload = function () {
+      // bytes are on the wire — the server now parses/indexes the iBOM
+      renderUpload(file.name, 100, "Processing…", true);
+    };
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        var meta = {};
+        try { meta = JSON.parse(xhr.responseText); } catch (e) {}
+        renderUploadDone(meta);
+        loadIboms().then(function () { if (meta.id) selectIbom(meta.id); });
+      } else {
+        renderUploadError(uploadError(xhr));
+      }
+    };
+    xhr.onerror = function () { renderUploadError("Network error"); };
+    xhr.send(fd);
+  }
+
+  function uploadError(xhr) {
+    try { return JSON.parse(xhr.responseText).detail || ("Upload failed (" + xhr.status + ")"); }
+    catch (e) { return "Upload failed (" + xhr.status + ")"; }
+  }
+
+  function renderUpload(name, pct, status, indeterminate) {
+    el.uploadStatus.className = "upload-status active" + (indeterminate ? " indet" : "");
+    el.uploadStatus.innerHTML =
+      '<div class="up-head"><span class="up-name">' + escapeHtml(name) + "</span>" +
+      '<span class="up-pct">' + (indeterminate ? escapeHtml(status) : pct + "%") + "</span></div>" +
+      '<div class="up-track"><div class="up-fill" style="width:' + pct + '%"></div></div>';
+  }
+
+  function renderUploadDone(meta) {
+    el.uploadStatus.className = "upload-status ok";
+    el.uploadStatus.innerHTML =
+      '<div class="up-head"><span class="up-name">✓ ' + escapeHtml(meta.name || "iBOM") + "</span>" +
+      '<span class="up-pct">done</span></div>' +
+      '<div class="up-track"><div class="up-fill" style="width:100%"></div></div>' +
+      (meta.warning ? '<div class="up-warn">⚠ ' + escapeHtml(meta.warning) + "</div>" : "");
+    uploadHideTimer = setTimeout(function () {
+      if (el.uploadStatus.classList.contains("ok")) {
+        el.uploadStatus.className = "upload-status";
+        el.uploadStatus.innerHTML = "";
+      }
+    }, 4500);
+  }
+
+  function renderUploadError(msg) {
+    el.uploadStatus.className = "upload-status error";
+    el.uploadStatus.textContent = "✗ " + msg;
   }
 
   function deleteIbom(m) {

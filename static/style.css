@@ -51,7 +51,21 @@ body {
 .upload-btn:hover { background: var(--accent-2); }
 .upload-status { padding: 0 16px; font-size: 12px; color: var(--text-dim); min-height: 16px; }
 .upload-status.error { color: var(--red); }
-.upload-status.ok { color: var(--green); }
+.upload-status.active, .upload-status.ok { color: var(--text); }
+.up-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.up-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-status.ok .up-name { color: var(--green); }
+.up-pct { flex: 0 0 auto; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.up-track { height: 6px; background: var(--bg-3); border-radius: 999px; overflow: hidden; }
+.up-fill { height: 100%; width: 0; background: var(--accent); border-radius: 999px; transition: width .15s ease; }
+.upload-status.ok .up-fill { background: var(--green); transition: none; }
+.up-warn { margin-top: 5px; color: #f59e0b; }
+/* "Processing…" — indeterminate bar sliding while the server parses the iBOM */
+.upload-status.indet .up-fill {
+  width: 35% !important; transition: none;
+  animation: up-indet 1.05s ease-in-out infinite;
+}
+@keyframes up-indet { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
 
 .nav-title {
   padding: 14px 16px 6px; font-size: 11px; letter-spacing: .8px;
