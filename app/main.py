@@ -244,14 +244,39 @@ async def api_put_settings(body: dict):
 # WebSocket-Bruecke
 # ---------------------------------------------------------------------------
 
+def _find_adopted_alternative(state: dict, lcsc: str) -> dict | None:
+    """Find an already-adopted alternative by its scanned LCSC number."""
+    key = str(lcsc).strip().upper()
+    for a in state.get("alternatives", []):
+        if str(a.get("altLcsc", "")).strip().upper() == key:
+            return a
+    return None
+
+
 async def _handle_scan(ws: WebSocket, ibom_id: str, data: dict) -> None:
     payload = data.get("payload") or data.get("code") or ""
     qr = parse_qr(payload)
     index = get_index(ibom_id)
     lcsc = qr["lcsc"]
-    result = ibom_processor.lookup(index, lcsc) if (index and lcsc) else None
+    state = storage.get_state(ibom_id)
+    phase = state.get("phase", "sourcing")
 
-    phase = storage.get_state(ibom_id).get("phase", "sourcing")
+    result = ibom_processor.lookup(index, lcsc) if (index and lcsc) else None
+    # An already-adopted alternative isn't in the BOM index, but scanning it must
+    # behave like a hit on its target position — especially while placing, where the
+    # phone should ask "placed?" instead of offering to adopt it again.
+    if not result and lcsc:
+        adopted = _find_adopted_alternative(state, lcsc)
+        if adopted:
+            result = {
+                "lcsc": lcsc,
+                "refs": adopted.get("refs", []),
+                "footprints": adopted.get("footprints", []),
+                "value": adopted.get("altValue", ""),
+                "package": adopted.get("altPackage", ""),
+                "mfr": adopted.get("altMpn", ""),
+                "count": len(adopted.get("refs", [])),
+            }
 
     part_info = None
     candidates = []
@@ -264,15 +289,16 @@ async def _handle_scan(ws: WebSocket, ibom_id: str, data: dict) -> None:
             needs_confirm = True   # phone confirms "all placed?" before ticking
         else:
             check_sourced = True   # sourcing phase -> tick Sourced directly
-    elif index and lcsc:
-        # Kein direktes Match -> Bauteil online nachschlagen und Alternativen suchen.
-        # Der Netzwerk-Aufruf ist blockierend -> in Thread auslagern.
+    elif index and lcsc and phase != "placing":
+        # Sourcing only: unknown part -> look it up online and offer alternatives.
+        # "Adopt as alternative?" makes no sense while placing, so it's skipped there.
+        # The network call is blocking -> run it off the event loop.
         part_info = await asyncio.to_thread(lcsc_api.fetch_part, lcsc)
         candidates = ibom_processor.match_alternatives(index, part_info)
         matched = "alternative" if candidates else "none"
         if candidates:
-            # Status der Zielposition (schon abgehakt?) mitgeben — als Entscheidungshilfe
-            cbx = storage.get_state(ibom_id).get("checkboxes", {})
+            # Attach target-position status (already ticked?) as a decision aid.
+            cbx = state.get("checkboxes", {})
             sourced = {x for x in (cbx.get("Sourced") or "").split(",") if x}
             placed = {x for x in (cbx.get("Placed") or "").split(",") if x}
             for c in candidates:
