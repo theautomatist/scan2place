@@ -284,6 +284,8 @@ body {
 .modal-box p { color: var(--text-dim); font-size: 13.5px; line-height: 1.5; }
 .modal-close { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
 .modal-close:hover { color: var(--text); }
+.mini-btn { background: var(--bg-3); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
+.mini-btn:hover { border-color: var(--accent); }
 
 .pair-qr { background: #fff; padding: 14px; border-radius: 10px; width: fit-content; margin: 14px auto; }
 .pair-qr img, .pair-qr canvas { display: block; }
