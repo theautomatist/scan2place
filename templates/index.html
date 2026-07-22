@@ -118,13 +118,19 @@
     <!-- ---- SCANNER ---- -->
     <section id="view-scanner" class="view" hidden>
       <div class="scanner-head">
-        <div>
-          <div class="scanner-target" id="scanner-target">—</div>
-          <div class="scanner-conn" id="scanner-conn">not connected</div>
+        <div class="scanner-progress">
+          <div class="scanner-progress-top">
+            <span class="conn-dot off" id="scanner-conn" title="not connected"></span>
+            <span id="scanner-progress-label"><span class="p-s">Sourced 0/0</span> · 0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="scanner-progress-sourced" class="progress-fill sourced"></div>
+            <div id="scanner-progress-placed" class="progress-fill placed"></div>
+          </div>
         </div>
-        <div class="scanner-head-right">
-          <span id="scanner-phase" class="scanner-phase" hidden></span>
-          <button id="scanner-switch-ibom" class="mini-btn">Switch iBOM</button>
+        <div class="phase-switch" id="scanner-phase-switch">
+          <button data-phase="sourcing">① Sourcing</button>
+          <button data-phase="placing">② Placing</button>
         </div>
       </div>
       <div class="scanner-stage">

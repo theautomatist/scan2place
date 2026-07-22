@@ -209,8 +209,6 @@
   function showScanner(id) {
     el.frame.src = "about:blank";
     setView("scanner");
-    var m = metaById(id);
-    el.scannerTarget.textContent = m ? m.name : id;
     el.scanResult.className = "scan-result idle";
     el.scanResult.textContent = "Starting camera…";
     el.scanLog.innerHTML = "";
@@ -225,15 +223,11 @@
     BomScanner.start(id, {
       getSettings: function () { return state.settings; },
       onStatus: function (text, connected) {
-        el.scannerConn.innerHTML = connected
-          ? '<span class="badge-status ok">connected</span>'
-          : '<span class="badge-status off">' + escapeHtml(text) + '</span>';
+        setConnDot(connected ? "ok" : "off", connected ? "connected" : text);
       },
       onPresence: function (c) {
         var v = c.viewers || 0;
-        el.scannerConn.innerHTML = v > 0
-          ? '<span class="badge-status ok">viewer</span>'
-          : '<span class="badge-status warn" title="Open the iBOM on your PC">no viewer</span>';
+        setConnDot(v > 0 ? "ok" : "warn", v > 0 ? "viewer connected" : "no viewer — open the iBOM on the PC");
       },
       onSettings: function (s) { if (s) { state.settings = s; updateScannerPhase(); } },
       onProgress: function (pr) { onProgress(pr); },
@@ -544,11 +538,27 @@
   // ---- Pipeline-Anzeige (Scanner) ---------------------------------------
   function updateScannerPhase() {
     var p = state.progress;
-    el.scannerPhase.hidden = false;
-    el.scannerPhase.innerHTML =
-      '<span class="p-s">Sourced ' + p.sourced + '</span> · ' +
-      '<span class="p-p">Placed ' + p.placed + '</span> / ' + p.total;
-    el.scannerPhase.className = "scanner-phase " + p.phase;
+    el.scannerPhaseSwitch.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.phase === p.phase);
+    });
+    el.scannerProgressSourced.style.width = (p.total ? Math.round(p.sourced / p.total * 100) : 0) + "%";
+    el.scannerProgressPlaced.style.width = (p.total ? Math.round(p.placed / p.total * 100) : 0) + "%";
+    // Label zeigt die aktuelle Phase (Sourced ODER Placed) + Prozent
+    var placing = p.phase === "placing";
+    var done = placing ? p.placed : p.sourced;
+    var pct = p.total ? Math.round(done / p.total * 100) : 0;
+    el.scannerProgressLabel.innerHTML = (placing
+      ? '<span class="p-p">Placed ' + p.placed + "/" + p.total + "</span>"
+      : '<span class="p-s">Sourced ' + p.sourced + "/" + p.total + "</span>")
+      + " · " + pct + "%";
+  }
+
+  // Verbindungs-Punkt im Scanner-Header. Bei 'ok' nur der Punkt, sonst + Kurztext.
+  function setConnDot(kind, label) {
+    if (!el.scannerConn) return;
+    el.scannerConn.className = "conn-dot " + kind;
+    el.scannerConn.textContent = kind === "ok" ? "" : label;
+    el.scannerConn.title = label;
   }
 
   function onProgress(p) {
@@ -579,9 +589,11 @@
     el.progressPlaced = $("#progress-placed");
     el.progressLabel = $("#progress-label");
     el.btnPair = $("#btn-pair");
-    el.scannerPhase = $("#scanner-phase");
-    el.scannerTarget = $("#scanner-target");
     el.scannerConn = $("#scanner-conn");
+    el.scannerProgressLabel = $("#scanner-progress-label");
+    el.scannerProgressSourced = $("#scanner-progress-sourced");
+    el.scannerProgressPlaced = $("#scanner-progress-placed");
+    el.scannerPhaseSwitch = $("#scanner-phase-switch");
     el.scanResult = $("#scan-result");
     el.scanSuggest = $("#scan-suggest");
     el.scanLog = $("#scan-log");
@@ -625,19 +637,21 @@
     el.roleSwitch.querySelectorAll("button").forEach(function (b) {
       b.addEventListener("click", function () { switchRole(b.dataset.role); });
     });
-    el.phaseSwitch.querySelectorAll("button").forEach(function (b) {
-      b.addEventListener("click", function () {
-        if (!state.currentId) return;
-        api("/api/iboms/" + encodeURIComponent(state.currentId) + "/phase", {
-          method: "PUT", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phase: b.dataset.phase }),
-        }).catch(function () {});  // UI folgt dem progress-Broadcast
+    // Phasen-Umschalter im Viewer UND im Scanner
+    [el.phaseSwitch, el.scannerPhaseSwitch].forEach(function (sw) {
+      sw.querySelectorAll("button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          if (!state.currentId) return;
+          api("/api/iboms/" + encodeURIComponent(state.currentId) + "/phase", {
+            method: "PUT", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phase: b.dataset.phase }),
+          }).catch(function () {});  // UI folgt dem progress-Broadcast
+        });
       });
     });
     $("#menu-toggle").addEventListener("click", openSidebarMobile);
     $("#sidebar-close").addEventListener("click", closeSidebarMobile);
     $("#sidebar-backdrop").addEventListener("click", closeSidebarMobile);
-    $("#scanner-switch-ibom").addEventListener("click", function () { openSidebarMobile(); });
   }
 
   function init() {

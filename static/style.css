@@ -190,10 +190,6 @@ body {
 .pair-btn.icon-only { padding: 8px 12px; flex: 0 0 auto; }
 
 /* Scanner-Phasenanzeige */
-.scanner-head-right { display: flex; align-items: center; gap: 10px; }
-.scanner-phase { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 7px; background: var(--bg-3); color: var(--text-dim); white-space: nowrap; }
-.scanner-phase.sourcing { background: rgba(59,130,246,.18); color: #93c5fd; }
-.scanner-phase.placing { background: rgba(22,163,74,.18); color: #4ade80; }
 
 /* Placing-Bestaetigung (nutzt das Vorschlags-Overlay) */
 .pl-q { text-align: center; font-size: 15px; margin-bottom: 4px; color: var(--text); }
@@ -204,12 +200,16 @@ body {
 
 /* ---- SCANNER ---- */
 #view-scanner { padding: 0; background: var(--bg); overflow: hidden; }
-.scanner-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 10px; }
-.scanner-target { font-weight: 700; font-size: 16px; }
-.scanner-conn { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-.scanner-conn.on { color: var(--green); }
-.mini-btn { background: var(--bg-3); border: 1px solid var(--border); color: var(--text); border-radius: 7px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; }
-.mini-btn:hover { border-color: var(--accent); }
+.scanner-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 12px; }
+.scanner-progress { flex: 1; min-width: 0; }
+.scanner-progress-top { display: flex; align-items: center; gap: 7px; font-size: 12px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; }
+.scanner-progress-top .p-s { color: #93c5fd; font-weight: 600; }
+.scanner-progress-top .p-p { color: #4ade80; font-weight: 600; }
+.conn-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); flex: 0 0 auto; }
+.conn-dot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); flex: 0 0 auto; }
+.conn-dot.ok::before { background: var(--green); }
+.conn-dot.warn::before { background: #f59e0b; }
+.conn-dot.off::before { background: var(--red); }
 
 .qr-reader { flex: 0 0 auto; width: 100%; max-width: 520px; margin: 8px auto 0; background: #000; border-radius: 12px; overflow: hidden; }
 .qr-reader video { display: block; width: 100% !important; height: auto !important; }
