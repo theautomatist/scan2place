@@ -324,8 +324,9 @@ async def _handle_scan(ws: WebSocket, ibom_id: str, data: dict) -> None:
         "raw": qr["raw"],
     })
 
-    # 2) Exakter Treffer ohne Bestaetigung -> Viewer sofort markieren
+    # 2) Gescannte Position im Viewer immer sofort hervorheben.
     if result and not needs_confirm:
+        # Sourcing / direkter Treffer: hervorheben + abhaken (+ Ack an den Scanner).
         await manager.send_to_role(ibom_id, "viewer", {
             "type": "scan",
             "lcsc": lcsc,
@@ -334,6 +335,23 @@ async def _handle_scan(ws: WebSocket, ibom_id: str, data: dict) -> None:
             "result": result,
             "check_sourced": check_sourced,
             "check_placed": check_placed,
+        })
+    elif result and needs_confirm:
+        # Placing: nur hervorheben + hinscrollen. Das Placed-Haekchen folgt erst
+        # nach der Bestaetigung ueber confirm_placed.
+        await manager.send_to_role(ibom_id, "viewer", {
+            "type": "highlight",
+            "lcsc": lcsc,
+            "result": result,
+        })
+    elif candidates:
+        # Alternative vorgeschlagen: beste Zielposition schon hervorheben, damit man
+        # sieht, wohin sie passt — abgehakt wird erst nach dem Uebernehmen.
+        best = candidates[0]
+        await manager.send_to_role(ibom_id, "viewer", {
+            "type": "highlight",
+            "lcsc": lcsc,
+            "result": {"footprints": best.get("footprints", []), "refs": best.get("refs", [])},
         })
 
     # 3) In die Scan-History schreiben

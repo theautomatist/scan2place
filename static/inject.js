@@ -384,7 +384,7 @@
         "transition:opacity .3s;max-width:90vw;text-align:center;";
       document.body.appendChild(el);
     }
-    el.style.background = ok ? "#16a34a" : "#dc2626";
+    el.style.background = ok === "info" ? "#3b82f6" : (ok ? "#16a34a" : "#dc2626");
     el.textContent = text;
     el.style.opacity = "1";
     clearTimeout(el._t);
@@ -422,6 +422,17 @@
     }
   }
 
+  // Placing-Phase: Position nur hervorheben + hinscrollen (nicht abhaken). Das
+  // Placed-Haekchen setzt der Server erst nach der Bestaetigung am Handy.
+  function onHighlight(msg) {
+    var result = msg.result || {};
+    var fps = result.footprints || [];
+    if (!fps.length) return;
+    highlightAndCheck(fps, false, false);
+    var refs = (result.refs || []).join(", ");
+    toast("◎ " + (msg.lcsc || "?") + "  →  " + refs + "  ·  confirm on phone", "info");
+  }
+
   // ---- WebSocket --------------------------------------------------------
   function connect() {
     var proto = location.protocol === "https:" ? "wss:" : "ws:";
@@ -433,6 +444,7 @@
       var msg;
       try { msg = JSON.parse(ev.data); } catch (e) { return; }
       if (msg.type === "scan") onScan(msg);
+      else if (msg.type === "highlight") onHighlight(msg);
       else if (msg.type === "alternative" && msg.alt) onAlternative(msg);
       else if (msg.type === "settings" && msg.settings) {
         helperSettings = msg.settings;

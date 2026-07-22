@@ -102,13 +102,25 @@ window.BomScanner = (function () {
   }
 
   // ---- Kamera / Decode --------------------------------------------------
+  // Pull an LCSC/JLCPCB code out of the raw decode. Packaging labels carry several
+  // codes next to the QR (DataMatrix, 1D barcode); a partial/garbled read has none.
+  // Only a real LCSC code may pass — otherwise a clean part would wrongly report
+  // "not recognised" and the user has to rescan. No LCSC pattern -> keep scanning.
+  function extractLcsc(text) {
+    if (!text) return null;
+    var m = /(?:^|[^A-Za-z0-9])(C\d{3,})(?![0-9])/i.exec(text);
+    return m ? m[1].toUpperCase() : null;
+  }
+
   function onDecode(text) {
+    var lcsc = extractLcsc(text);
+    if (!lcsc) return;  // not an LCSC code (other barcode / unclean read) -> keep scanning
     var now = Date.now();
-    if (text === lastText && (now - lastTime) < 2500) return; // Mehrfach-Scan entprellen
-    lastText = text; lastTime = now;
+    if (lcsc === lastText && (now - lastTime) < 2500) return; // debounce on the LCSC number
+    lastText = lcsc; lastTime = now;
     if (ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: "scan", payload: text }));
-      pause();  // anhalten, bis das Ergebnis verarbeitet/entschieden ist
+      ws.send(JSON.stringify({ type: "scan", payload: text }));  // send raw text, server parses it
+      pause();  // freeze until the result is processed/decided
       if (cb.onScanning) cb.onScanning(text);
     }
   }
